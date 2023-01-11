@@ -1,3 +1,6 @@
+from collections import Counter
+import numpy as np
+
 def bigrams_from_transcript(filename):
     """
     read a file of sentences, adding start '<s>' and stop '</s>' tags; Tokenize it into a list of lower case words
@@ -32,3 +35,24 @@ def sentence_to_bigrams(sentence):
     for i in range(len(sentence_tokens)-1):
         sentence_bigrams.append((sentence_tokens[i], sentence_tokens[i+1]))
     return sentence_tokens, sentence_bigrams
+
+def bigram_add1_logs(transcript_file):
+    """
+    provide a smoothed log probability dictionary based on a transcript
+    :param transcript_file: string
+        transcript_file is the path filename containing unpunctuated text sentences
+    :return: dict
+        bg_add1_log_dict: dictionary of smoothed bigrams log probabilities including
+        tags: <s>: start of sentence, </s>: end of sentence, <unk>: unknown placeholder probability
+    """
+
+    tokens, bigrams = bigrams_from_transcript(transcript_file)
+    token_counts = Counter(tokens)
+    bigram_counts = Counter(bigrams)
+    vocab_count = len(token_counts)
+
+    bg_addone_dict = {}
+    for bg in bigram_counts:
+        bg_addone_dict[bg] = np.log((bigram_counts[bg] + 1.) / (token_counts[bg[0]] + vocab_count))
+    bg_addone_dict['<unk>'] = np.log(1. / vocab_count)
+    return bg_addone_dict
